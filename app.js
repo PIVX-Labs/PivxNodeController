@@ -11,6 +11,7 @@ import jq from "node-jq";
 
 const app = express();
 app.use(cors());
+const url = process.env["URL"] || "http://127.0.0.1";
 const port = process.env["PORT"] || 3000;
 const rpcPort = process.env["RPC_PORT"] || 51473;
 const testnetRpcPort = process.env["TESTNET_RPC_PORT"];
@@ -50,7 +51,7 @@ const encodeBase64 = (data) => {
 async function makeRpc(isTestnet, name, ...params) {
   try {
     const output = await fetch(
-      `http://127.0.0.1:${isTestnet ? testnetRpcPort : rpcPort}/`,
+      `${url}:${isTestnet ? testnetRpcPort : rpcPort}/`,
       {
         method: "POST",
         headers: {
@@ -64,7 +65,7 @@ async function makeRpc(isTestnet, name, ...params) {
           method: name,
           params,
         }),
-      }
+      },
     );
 
     const obj = await output.json();
@@ -103,7 +104,7 @@ async function handleRequest(isTestnet, req, res) {
       const { status, response } = await makeRpc(
         isTestnet,
         req.params["rpc"],
-        ...params
+        ...params,
       );
       try {
         res
@@ -111,7 +112,7 @@ async function handleRequest(isTestnet, req, res) {
           .send(
             filter
               ? await jq.run(filter, response, { input: "string" })
-              : response
+              : response,
           );
       } catch (e) {
         const badRequest = 400;
