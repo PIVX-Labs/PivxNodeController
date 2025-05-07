@@ -118,7 +118,7 @@ app.get("/mainnet/getshielddatalength", async (req, res) => {
     res.status(422).send("startBlock is not a valid starting block");
     return;
   }
-  res.status(200).send(endingByte - startingByte);
+  res.status(200).send((endingByte - startingByte).toString());
 });
 
 app.get("/mainnet/:rpc", async (req, res) => handleRequest(false, req, res));
