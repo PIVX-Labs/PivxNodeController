@@ -112,7 +112,7 @@ app.get("/mainnet/getshielddatalength", async (req, res) => {
     ({ block }) => block >= startBlock,
   )?.i;
   const endingByte = shield["mainnet"].findLast(
-    ({ block }) => block <= endingBlock,
+    ({ block }) => block <= endBlock,
   )?.i;
   if (startingByte === undefined) {
     res.status(422).send("startBlock is not a valid starting block");
