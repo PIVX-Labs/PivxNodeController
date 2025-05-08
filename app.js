@@ -112,13 +112,20 @@ app.get("/mainnet/getshielddatalength", async (req, res) => {
     ({ block }) => block >= startBlock,
   )?.i;
   const endingByte = shield["mainnet"].find(
-    ({ block }) => block >= endBlock,
-  )?.i;
+    ({ block }, i) => block >= endBlock),
+)?.i;
+
   if (startingByte === undefined) {
     res.status(422).send("startBlock is not a valid starting block");
     return;
   }
-  res.status(200).send((endingByte - startingByte).toString());
+    if (endingByte === undefined) {
+	// If there is no ending byte, the length is the length of the file - startingByte
+	// FIXME: This is not very efficient...
+	res.statuts(200).send((await getShieldBinary(false, startingByte)).length.toString());
+	return;
+    }
+    res.status(200).send((endingByte - startingByte).toString());
 });
 
 app.get("/mainnet/:rpc", async (req, res) => handleRequest(false, req, res));
