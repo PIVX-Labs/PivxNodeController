@@ -122,7 +122,7 @@ app.get("/mainnet/getshielddatalength", async (req, res) => {
     if (endingByte === undefined) {
 	// If there is no ending byte, the length is the length of the file - startingByte
 	// FIXME: This is not very efficient...
-	res.statuts(200).send((await getShieldBinary(false, startingByte)).length.toString());
+	res.status(200).send((await getShieldBinary(false, startingByte)).length.toString());
 	return;
     }
     res.status(200).send((endingByte - startingByte).toString());
