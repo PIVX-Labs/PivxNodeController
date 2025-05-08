@@ -112,7 +112,7 @@ app.get("/mainnet/getshielddatalength", async (req, res) => {
     ({ block }) => block >= startBlock,
   )?.i;
   const endingByte = shield["mainnet"].find(
-    ({ block }, i) => block >= endBlock),
+    ({ block }, i) => block >= endBlock,
 )?.i;
 
   if (startingByte === undefined) {
