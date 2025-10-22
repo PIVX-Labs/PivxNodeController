@@ -91,7 +91,6 @@ app.get("/mainnet/getshielddata", async (req, res) => {
   const startingByte = shield["mainnet"]
     // Get the first block that's greater or equal than the requested starting block
     .find(({ block }) => block >= startBlock)?.i;
-  console.log(startingByte);
   if (startingByte === undefined) {
     const noContent = 204;
     res.status(noContent).send(Buffer.from([]));
@@ -100,6 +99,35 @@ app.get("/mainnet/getshielddata", async (req, res) => {
   const shieldBinary = await getShieldBinary(false, startingByte);
   res.set("X-Content-Length", shieldBinary.length);
   res.send(shieldBinary);
+});
+
+app.get("/mainnet/getshielddatalength", async (req, res) => {
+  const startBlock = req.query.startBlock || 0;
+  const endBlock = req.query.endBlock || Number.POSITIVE_INFINITY;
+  if (startBlock > endBlock) {
+    res.status(422).send("startBlock must be less or equal than endBlock");
+    return;
+  }
+  const startingByte = shield["mainnet"].find(
+    ({ block }) => block >= startBlock,
+  )?.i;
+  const endingByte = shield["mainnet"].find(
+    ({ block }, i) => block >= endBlock,
+  )?.i;
+
+  if (startingByte === undefined) {
+    res.status(422).send("startBlock is not a valid starting block");
+    return;
+  }
+  if (endingByte === undefined) {
+    // If there is no ending byte, the length is the length of the file - startingByte
+    // FIXME: This is not very efficient...
+    res
+      .status(200)
+      .send((await getShieldBinary(false, startingByte)).length.toString());
+    return;
+  }
+  res.status(200).send((endingByte - startingByte).toString());
 });
 
 app.get("/mainnet/:rpc", async (req, res) => handleRequest(false, req, res));
