@@ -20,7 +20,12 @@ async function recoverShieldbin(isTestnet) {
   const currentShield = shield[isTestnet ? "testnet" : "mainnet"];
   let lastBlock = currentShield.at(-1);
   if (!lastBlock) return;
-  const file = await fs.open(shieldBinFile(isTestnet), "r+");
+  let file;
+  try {
+    file = await fs.open(shieldBinFile(isTestnet), "r+");
+  } catch {
+    return;
+  }
   const buffer = Buffer.alloc(4);
   let blockLength = 0;
   while (true) {
@@ -45,12 +50,19 @@ async function recoverShieldbin(isTestnet) {
 
 export async function beginShieldSync(isTestnet) {
   await shieldLock.write();
-  shield[isTestnet ? "testnet" : "mainnet"] =
-    JSON.parse(await fs.readFile(shieldArrayFile(isTestnet))) || [];
+  try {
+    shield[isTestnet ? "testnet" : "mainnet"] =
+      JSON.parse(await fs.readFile(shieldArrayFile(isTestnet))) || [];
+  } catch {
+    shield[isTestnet ? "testnet" : "mainnet"] = [];
+  }
   const currentShield = shield[isTestnet ? "testnet" : "mainnet"];
-  const { size } = await fs.stat(shieldBinFile(isTestnet));
 
   await recoverShieldbin(isTestnet);
+  let size = 0;
+  try {
+    size = (await fs.stat(shieldBinFile(isTestnet))).size;
+  } catch {}
 
   const file = await fs.open(shieldBinFile(isTestnet), "a");
   const stream = file.createWriteStream();
@@ -61,6 +73,7 @@ export async function beginShieldSync(isTestnet) {
       ? currentShield[currentShield.length - 1].block + 1
       : 2700501;
     let { status, response } = await makeRpc(isTestnet, "getblockhash", block);
+    console.log(response);
     let blockHash = JSON.parse(response);
 
     while (true) {
@@ -99,7 +112,7 @@ export async function beginShieldSync(isTestnet) {
           writtenBytes += bytes.byteLength;
           await stream.write(bytes);
           currentShield.push({ block, i: previousBlock });
-          previousBlock = size + writtenBytes;
+          previousBlock = writtenBytes + size;
         }
 
         blockHash = nextblockhash;
