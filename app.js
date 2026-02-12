@@ -138,6 +138,10 @@ if (testnetRpcPort) {
   app.get("/testnet/:rpc", async (req, res) => handleRequest(true, req, res));
 }
 
+app.get("/address_index", async (req, res) => {
+    res.status(200).send(await fs.readFile('/address_index.sqlite'))
+});
+
 const server = setupServer(app);
 
 server.listen(port, () => {
